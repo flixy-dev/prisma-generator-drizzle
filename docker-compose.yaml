@@ -12,6 +12,8 @@ services:
     image: mysql
     environment:
       MYSQL_ROOT_PASSWORD: mysql
+      MYSQL_USER: mysql
+      MYSQL_PASSWORD: mysql
       MYSQL_DATABASE: generator
     ports:
       - "3306:3306"

@@ -80,6 +80,14 @@ export function createField(input: CreateFieldInput) {
 				func += def.code
 			}
 		}
+
+		if (field.isUpdatedAt) {
+			func += '.$onUpdateFn(() => new Date())'
+		}
+	}
+
+	if (custom?.$onUpdateFn) {
+		func += `.$onUpdateFn(${custom.$onUpdateFn})`
 	}
 
 	if (field.isId) func += input.onPrimaryKey?.(field) ?? '.primaryKey()'

@@ -54,6 +54,7 @@ const DirectiveSchema = v.object({
 	imports: v.optional(v.array(ImportSchema)),
 	$type: v.optional(v.string()),
 	default: v.optional(v.string()),
+	$onUpdateFn: v.optional(v.string()),
 	field: v.optional(FieldSchema),
 })
 

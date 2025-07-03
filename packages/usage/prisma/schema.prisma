@@ -218,3 +218,9 @@ model FieldCustomization {
   /// }
   allFields BigInt
 }
+
+model MappingField {
+  id String @id
+
+  code String @map("alpha2")
+}

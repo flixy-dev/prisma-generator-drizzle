@@ -10,6 +10,9 @@ import {
 	isDefaultFunc,
 } from '../fields/createField'
 import type { BigIntMode } from '../fields/directives/custom'
+import { getDirective } from '~/lib/directive'
+import { SchemaField } from '~/lib/prisma-helpers/schema/schema-field'
+import { logger } from '@prisma/sdk'
 
 const coreModule = 'drizzle-orm/pg-core'
 
@@ -103,10 +106,18 @@ export const postgresAdapter = createAdapter({
 		},
 		// https://orm.drizzle.team/docs/column-types/pg/#timestamp
 		DateTime(field) {
+			var _a
+			const customDbType = getCustomDbType(field)
+			let imports = []
+			if (customDbType) {
+				imports = imports.concat(customDbType.imports)
+			} else {
+				imports = [namedImport(['timestamp'], coreModule)]
+			}
 			return createField({
 				field,
-				imports: [namedImport(['timestamp'], coreModule)],
-				func: `timestamp('${getDbName(field)}', { mode: '${getDateMode(field)}', precision: 3 })`, // biome-ignore format: keep one line
+				imports,
+				func: `${(_a = customDbType == null ? void 0 : customDbType.code) != null ? _a : 'timestamp'}('${getDbName(field)}'${customDbType ? ')' : `, { mode: '${getDateMode(field)}', precision: 3 })`}`,
 			})
 		},
 		// https://orm.drizzle.team/docs/column-types/pg/#decimal
@@ -160,3 +171,16 @@ export const postgresAdapter = createAdapter({
 	},
 	extraModules: [customBytesModule],
 })
+
+export function getCustomDbType(field: SchemaField) {
+	const type = getDirective(field, 'drizzle.dbType')
+
+	if (type == null) {
+		return
+	}
+
+	return {
+		imports: namedImport([type], coreModule, false),
+		code: type,
+	}
+}

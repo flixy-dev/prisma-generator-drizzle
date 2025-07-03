@@ -6,10 +6,10 @@ function isVerbose() {
 	return getGenerator().config.verbose
 }
 
-function log(message: string) {
+function log(message: string, ...args: unknown[]) {
 	if (!isVerbose()) return
 
-	baseLogger.log(`${GENERATOR_NAME}: ${message}`)
+	baseLogger.log(`${GENERATOR_NAME}: ${message}`, ...args)
 }
 
 function createTask() {

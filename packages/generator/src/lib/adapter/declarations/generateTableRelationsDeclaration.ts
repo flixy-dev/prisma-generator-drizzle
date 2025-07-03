@@ -143,6 +143,12 @@ function getOneToOneOrManyRelation(
 	const opposingModel = findOpposingRelationModel(field, ctx.schema)
 	const opposingField = findOpposingRelationField(field, opposingModel)
 
+	const isSelfRelationWithSameRelationNameVar =
+		isSelfRelationWithSameRelationName({
+			field,
+			model: ctx.modelModule.model,
+		})
+
 	return createRelation({
 		referenceModelVarName: getModelVarName(field.type),
 		opts:
@@ -152,17 +158,52 @@ function getOneToOneOrManyRelation(
 			hasMultipleDisambiguatingRelations({
 				field,
 				model: ctx.modelModule.model,
-			})
+			}) ||
+			// Fix for self-relations: both sides need relationName to disambiguate
+			isSelfRelationWithSameRelationNameVar
 				? createRelationOpts({
 						relationName: field.relationName,
-						from: {
-							modelVarName: ctx.modelModule.model.getVarName(),
-							fieldNames: opposingField.relationToFields,
-						},
-						to: {
-							modelVarName: getModelVarName(field.type),
-							fieldNames: opposingField.relationFromFields,
-						},
+						// For self-relations, determine fields and references based on which side holds the FK
+						...(() => {
+							// Find the field that holds the foreign key (has relationFromFields/relationToFields)
+							const fieldWithFK = getModelFields(ctx.modelModule.model).find(
+								(f) =>
+									f.isRelationField &&
+									f.relationName === field.relationName &&
+									hasReference(f)
+							) as SchemaFieldRelational | undefined
+
+							if (!fieldWithFK) {
+								// If no field has FK, this shouldn't happen for self-relations
+								return {}
+							}
+
+							// If current field is the one with FK
+							if (field.name === fieldWithFK.name) {
+								return {
+									from: {
+										modelVarName: ctx.modelModule.model.getVarName(),
+										fieldNames: field.relationFromFields,
+									},
+									to: {
+										modelVarName: getModelVarName(field.type),
+										fieldNames: field.relationToFields,
+									},
+								}
+							}
+
+							// Current field is inverse side, use FK field's info but swap from/to
+							return {
+								from: {
+									modelVarName: ctx.modelModule.model.getVarName(),
+									fieldNames: fieldWithFK.relationToFields,
+								},
+								to: {
+									modelVarName: getModelVarName(field.type),
+									fieldNames: fieldWithFK.relationFromFields,
+								},
+							}
+						})(),
 					})
 				: undefined,
 	})
@@ -373,4 +414,31 @@ function hasMultipleDisambiguatingRelations(args: {
 		if (count > 1) return true
 	}
 	return false
+}
+
+/**
+ * Detects self-relations where multiple fields share the same relationName.
+ * For these cases, both sides of the relation need relationName, fields, and references
+ * to properly disambiguate in Drizzle.
+ */
+function isSelfRelationWithSameRelationName(args: {
+	field: SchemaFieldRelational
+	model: SchemaModel
+}): boolean {
+	const { field, model } = args
+
+	// Check if this is a self-relation
+	if (field.type !== model.dmmf.name) {
+		return false
+	}
+
+	// Check if there's another field with the same relationName
+	const fieldsWithSameRelationName = getModelFields(model).filter(
+		(f) =>
+			f.isRelationField &&
+			f.relationName === field.relationName &&
+			f.name !== field.name // Exclude the current field
+	)
+
+	return fieldsWithSameRelationName.length > 0
 }
