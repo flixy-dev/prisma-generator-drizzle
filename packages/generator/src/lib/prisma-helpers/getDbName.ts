@@ -1,5 +1,3 @@
-import { logger } from '@prisma/sdk'
-
 export function getDbName(
 	field: { dbName?: string | null; name: string } | { getDbName(): string }
 ) {

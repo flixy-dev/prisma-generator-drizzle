@@ -1,5 +1,7 @@
 import { camelCase, kebabCase } from 'lodash'
+import { getDirective } from '~/lib/directive'
 import { getDbName } from '~/lib/prisma-helpers/getDbName'
+import type { SchemaField } from '~/lib/prisma-helpers/schema/schema-field'
 import { namedImport } from '~/lib/syntaxes/imports'
 import { createModule } from '~/lib/syntaxes/module'
 import { getDateMode } from '~/shared/date-mode'
@@ -10,9 +12,6 @@ import {
 	isDefaultFunc,
 } from '../fields/createField'
 import type { BigIntMode } from '../fields/directives/custom'
-import { getDirective } from '~/lib/directive'
-import { SchemaField } from '~/lib/prisma-helpers/schema/schema-field'
-import { logger } from '@prisma/sdk'
 
 const coreModule = 'drizzle-orm/pg-core'
 
