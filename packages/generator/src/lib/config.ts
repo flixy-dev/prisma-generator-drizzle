@@ -5,16 +5,18 @@ import {
 	flatten,
 	object,
 	optional,
+	picklist,
 	safeParse,
 	string,
 } from 'valibot'
 import { DateMode } from '~/shared/date-mode'
-import { ModuleResolution } from '~/shared/generator-context/module-resolution'
 import { BooleanInStr } from './valibot-schema'
+
+const ImportFileExtension = picklist(['none', 'js', 'ts'])
 
 const Config = object({
 	relationalQuery: optional(BooleanInStr, true),
-	moduleResolution: optional(ModuleResolution),
+	importFileExtension: optional(ImportFileExtension, 'none'),
 	verbose: optional(BooleanInStr),
 	formatter: optional(string()),
 	abortOnFailedFormatting: optional(BooleanInStr, true),

@@ -69,14 +69,12 @@ prisma generate
 |    | Generate single output file                 |  | "drizzle.ts" |
 | formatter       | Run formatter after generation     | -           | "prettier"  |
 | relationalQuery | Flag to generate relational query | true        | false       |
-| moduleResolution         | Specify the [module resolution](https://www.typescriptlang.org/tsconfig#moduleResolution) that will affect the import style | _*auto_           | nodenext        |
+| importFileExtension | File extension for relative imports | "none" | "js", "ts" |
 | verbose         | Flag to enable verbose logging    | -           | true        |
 | abortOnFailedFormatting | Flag to throw exception when formatting fails | true | false |
-| **dateMode | Change the generated mode for date | "date" ||
+| *dateMode | Change the generated mode for date | "date" ||
 
-_* It will find the closest tsconfig from the current working directory. Note that [extends](https://www.typescriptlang.org/tsconfig#extends) is not supported_
-
-_**Does not work with sqlite_
+_*Does not work with sqlite_
 
 ### Setting up [relational query](https://orm.drizzle.team/docs/rqb)
 
@@ -259,11 +257,18 @@ export const users = pgTable('User', {
 
 
 ## Gotchas
-### Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'.
+### Relative import paths need explicit file extensions
 
-By default, the generator will try to find the closest tsconfig from the current working directory to determine the import style, whether to add `.js` or not. When there's no config found, it will use the common import (e.g. `import { users } from './users'`).
+If you're using ESM with `nodenext`/`node16` module resolution, or native Node.js TypeScript support, you may need to configure the `importFileExtension` option:
 
-You can explicitly set the `moduleResolution` option in the [generator configuration](#configuration).
+```prisma
+generator drizzle {
+  provider            = "prisma-generator-drizzle"
+  importFileExtension = "js"  // For ESM with nodenext/node16
+  // or
+  importFileExtension = "ts"  // For native Node.js TypeScript support
+}
+```
 
 Check also [the discussion](https://github.com/farreldarian/prisma-generator-drizzle/issues/18)
 

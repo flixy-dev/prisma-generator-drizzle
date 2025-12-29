@@ -1,6 +1,5 @@
 import type { GeneratorOptions } from '@prisma/generator-helper'
 import { type Config, parseConfig } from '~/lib/config'
-import { resolveModuleResolution } from './module-resolution'
 
 type Output = {
 	isSingleFile: boolean
@@ -8,7 +7,6 @@ type Output = {
 }
 
 type Generator = {
-	moduleResolution?: string
 	output: Output
 	//
 	dmmf: GeneratorOptions['dmmf']
@@ -24,7 +22,6 @@ export function initializeGenerator(options: GeneratorOptions) {
 	const output = getOutputConfig(options)
 
 	const context: Generator = {
-		moduleResolution: config.moduleResolution ?? resolveModuleResolution(),
 		output,
 		//
 		dmmf: options.dmmf,
@@ -67,6 +64,6 @@ export function isRelationalQueryEnabled() {
 	return getGenerator().config.relationalQuery
 }
 
-export function getModuleResolution() {
-	return getGenerator().config.moduleResolution
+export function getImportFileExtension() {
+	return getGenerator().config.importFileExtension
 }
