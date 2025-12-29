@@ -61,6 +61,12 @@ export function createField(input: CreateFieldInput) {
 		}
 	}
 
+	if (field.isId) {
+		func += input.onPrimaryKey?.(field) ?? '.primaryKey()'
+	} else if (field.isRequired) {
+		func += '.notNull()'
+	}
+
 	let hasDefaultFn = false
 	if (custom?.default) {
 		hasDefaultFn = true
@@ -89,10 +95,6 @@ export function createField(input: CreateFieldInput) {
 	if (custom?.$onUpdateFn) {
 		func += `.$onUpdateFn(${custom.$onUpdateFn})`
 	}
-
-	if (field.isId) func += input.onPrimaryKey?.(field) ?? '.primaryKey()'
-	else if (field.isRequired || field.hasDefaultValue || hasDefaultFn)
-		func += '.notNull()'
 
 	return {
 		imports,
